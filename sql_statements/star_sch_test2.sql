@@ -53,11 +53,17 @@ CREATE TABLE [DWH].[DWH_test_1].[DateDim_1_TB](
     CalendarMonth int,
     CalendarYear int,
     CalendarQuarter int,
+
     AUFiscalMonth int, 
     AUFiscalYear int,
+    AUFiscalQuarter int,
+
     Weekday int,
-    WeekNth int,
-    SWSFiscalWeekNum int,
+    CalendarWeekNth int,
+
+    SWSFiscalWeekNth int,
+    SWSFiscalYear int,
+    
     IsPublicHoliday bit, 
     IsWeekend bit
 )

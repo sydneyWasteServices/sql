@@ -25,6 +25,8 @@ DATEPART(wk, [Date]) as week  FROM SecondHalf_FicscalYear
 
 
 
+
+
 SET DATEFIRST 1
 SELECT [Job No],[Date],DATEPART(WEEKDAY, [STAGE_2_DB].[BOOKING_SCH_S2].[BOOKING_TB_S2].[Date]) , [Weekday]
 FROM [STAGE_2_DB].[BOOKING_SCH_S2].BOOKING_TB_S2 
@@ -91,10 +93,6 @@ SET DATEPART (WEEK, '2021-04-21') = 1
 
 
 
--- , DATEPART(WEEKDAY, [Date]) as weekDay1 
-
-
-
 
 
 
@@ -114,4 +112,57 @@ select
 from 
 	(select distinct [Date Index] from [dbo].[staging_table_test]) AS for_distinct_dates
 order by [Date Index]
+
+
+USE STAGE_1_DB
+GO
+
+[COLUMN_NAME], [DATA_TYPE]
+
+SELECT DISTINCT *
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE INFORMATION_SCHEMA.COLUMNS.TABLE_SCHEMA != 'cdc'
+AND INFORMATION_SCHEMA.COLUMNS.[COLUMN_NAME] = 'WeekDay'
+
+
+ALTER TABLE [STAGE_1_DB].[BOOKING_SCH_S1].[BOOKING_TB_S1]
+ALTER COLUMN [Weekday] INT;
+
+
+
+-- ========================================================
+-- Developing SWS fiscal Week
+-- From Wednesday to Tuesday 
+
+-- 1. Inspect How many Wednesday to Tuesday in those years 
+ -- ( Sunday )
+ 
+
+SELECT TOP 1000 [Date], [Weekday], DATEPART(wk, [Date]) as weekNum
+FROM [STAGE_2_DB].[BOOKING_SCH_S2].[BOOKING_TB_S2]
+GROUP BY [STAGE_2_DB].[BOOKING_SCH_S2].[BOOKING_TB_S2].[Date]
+ORDER BY [STAGE_2_DB].[BOOKING_SCH_S2].[BOOKING_TB_S2].[Date]
+
+
+
+WITH DistinctDate AS
+(
+    SELECT * ,
+        ROW_NUMBER() OVER(
+            PARTITION BY [Date] ORDER BY [Date]) AS 'RowNum' 
+    FROM [STAGE_1_DB].[BOOKING_SCH_S1].[BOOKING_TB_S1]
+    
+)SELECT * INTO #TmpTable
+FROM DistinctDate
+WHERE RowNum = 1
+
+ALTER TABLE #TmpTable
+DROP COLUMN RowNum;
+
+SET DATEFIRST 3
+SELECT top 1000 [Date], [Weekday], DATEPART(wk, [Date]) as weekNum
+FROM #TmpTable
+ORDER BY [Date] DESC 
+
+DROP TABLE #TmpTable
 

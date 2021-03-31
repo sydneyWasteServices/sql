@@ -30,7 +30,7 @@ With AUfiscalCal as(
     SWSFiscalYear int
 
 <!-- It will hit to 53th Condition 
-        When hit to 53th Week, it leaps to the next year -->
+    When hit to 53th Week, it leaps to the next year -->
 
 
 WITH DistinctDate AS
