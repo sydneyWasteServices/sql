@@ -1,4 +1,141 @@
+WITH DistinctDate AS
+(
+    SELECT * ,
+        ROW_NUMBER() OVER(
+            PARTITION BY [Date] ORDER BY [Date]) AS 'RowNum' 
 
+    FROM [STAGE_2_DB].[BOOKING_SCH_S2].[BOOKING_TB_S2]
+    
+)SELECT * INTO #TmpTable
+FROM DistinctDate
+WHERE RowNum = 1
+
+ALTER TABLE #TmpTable
+DROP COLUMN RowNum;
+
+SET DATEFIRST 3
+SELECT  
+    [Date], 
+    [Weekday], 
+    DATEPART(wk, [Date]) as weekNum, 
+    DATEPART(YEAR, [Date]) as SWS_Year
+    INTO 
+
+    #SWS_WEEK_YEAR
+    
+FROM #TmpTable
+ORDER BY [Date] DESC; 
+DROP TABLE #TmpTable;
+
+Alter Table #SWS_WEEK_YEAR
+ADD NumOfDaysInWeek int;
+
+With NumOfDaysLookup as (Select 
+    [SWS_Year] as y,
+    [weekNum] as wk, 
+    count(*) AS NumOfDays
+FROM 
+    #SWS_WEEK_YEAR
+GROUP BY 
+#SWS_WEEK_YEAR.SWS_Year,
+#SWS_WEEK_YEAR.weekNum
+)
+Update #SWS_WEEK_YEAR
+SET #SWS_WEEK_YEAR.[NumOfDaysInWeek] = NumOfDaysLookup.[NumOfDays]
+FROM #SWS_WEEK_YEAR
+LEFT JOIN 
+NumOfDaysLookup
+ON 
+#SWS_WEEK_YEAR.SWS_Year = NumOfDaysLookup.y 
+AND 
+#SWS_WEEK_YEAR.[weekNum] = NumOfDaysLookup.wk;
+
+
+UPDATE #SWS_WEEK_YEAR
+    SET #SWS_WEEK_YEAR.[weekNum] = 
+        CASE 
+            WHEN #SWS_WEEK_YEAR.[NumOfDaysInWeek] < 7 AND #SWS_WEEK_YEAR.[weekNum] > 52
+            THEN 1
+            ELSE #SWS_WEEK_YEAR.[weekNum]
+        END
+        ,
+        #SWS_WEEK_YEAR.[SWS_Year] = 
+        CASE 
+            WHEN #SWS_WEEK_YEAR.[NumOfDaysInWeek] < 7 AND #SWS_WEEK_YEAR.[weekNum] > 52
+            THEN DATEPART(Year, DATEADD(year, 1, #SWS_WEEK_YEAR.[Date]))
+            ELSE #SWS_WEEK_YEAR.[SWS_Year]
+        END
+    FROM #SWS_WEEK_YEAR
+
+SELECT [weekNum],count([SWS_Year]) FROM #SWS_WEEK_YEAR
+GROUP BY #SWS_WEEK_YEAR.weekNum
+
+Drop Table #SWS_WEEK_YEAR
+
+
+
+-- ORDER BY #SWS_WEEK_YEAR.[Date]
+
+-- IF @IsWeekend = 1
+--     UPDATE table_name SET column_A = column_A + @new_value WHERE ID = @ID;
+-- ELSE
+--     UPDATE table_name SET column_B = column_B + @new_value WHERE ID = @ID;
+
+
+
+Update #SWS_WEEK_YEAR
+    IF DATEPART(WEEKDAY, #SWS_WEEK_YEAR.[Date]) = 6 OR  DATEPART(WEEKDAY, #SWS_WEEK_YEAR.[Date]) = 7
+        SET  #SWS_WEEK_YEAR.[IsWeekend] = 1
+    ELSE 
+        SET  #SWS_WEEK_YEAR.[IsWeekend] = 0
+    FROM #SWS_WEEK_YEAR
+
+
+Update #SWS_WEEK_YEAR SET  #SWS_WEEK_YEAR.[IsWeekend] = 1 FROM #SWS_WEEK_YEAR WHERE #SWS_WEEK_YEAR.[WEEKDAY] = 6 OR  #SWS_WEEK_YEAR.[WEEKDAY] = 7;
+Update #SWS_WEEK_YEAR SET  #SWS_WEEK_YEAR.[IsWeekend] = 0 FROM #SWS_WEEK_YEAR WHERE #SWS_WEEK_YEAR.[Weekday] != 6 AND  #SWS_WEEK_YEAR.[Weekday] != 7;
+
+
+SELECT *
+FROM
+#SWS_WEEK_YEAR
+WHERE #SWS_WEEK_YEAR.[IsWeekend] = 0
+-- AND  #SWS_WEEK_YEAR.[WeekDay] = 7
+-- OR  #SWS_WEEK_YEAR.[WeekDay] = 6
+order by 
+[Date]
+
+
+DECLARE @query nvarchar(max) = 'SELECT TOP 3 [Weekday] FROM #SWS_WEEK_YEAR ';
+EXEC sp_describe_first_result_set @query, null, 0;  
+
+
+-- Eample
+-- DECLARE @maxWeight FLOAT, @productKey INTEGER  
+-- SET @maxWeight = 100.00  
+-- SET @productKey = 424  
+-- IF @maxWeight <= (SELECT Weight from DimProduct WHERE ProductKey = @productKey)   
+--     SELECT @productKey AS ProductKey, EnglishDescription, Weight, 'This product is too heavy to ship and is only available for pickup.' 
+--         AS ShippingStatus
+--     FROM DimProduct WHERE ProductKey = @productKey
+-- ELSE  
+--     SELECT @productKey AS ProductKey, EnglishDescription, Weight, 'This product is available for shipping or pickup.' 
+--         AS ShippingStatus
+--     FROM DimProduct WHERE ProductKey = @productKey
+
+-- ============================================================
+    -- IsWeekend  IsPublic
+    Update #SWS_WEEK_YEAR
+        SET [IsWeekend] = 1
+        FROM #SWS_WEEK_YEAR 
+            WHERE #SWS_WEEK_YEAR.[Weekday] = 6
+            OR #SWS_WEEK_YEAR.[Weekday] = 7
+
+        [IsWeekend] = 0
+            FROM #SWS_WEEK_YEAR 
+            WHERE #SWS_WEEK_YEAR.[Weekday] BETWEEN 1 TO 5
+            
+
+-- ============================================================
 
 With AUfiscalCal as(
     SELECT 
@@ -143,6 +280,44 @@ FROM [STAGE_2_DB].[BOOKING_SCH_S2].[BOOKING_TB_S2]
 GROUP BY [STAGE_2_DB].[BOOKING_SCH_S2].[BOOKING_TB_S2].[Date]
 ORDER BY [STAGE_2_DB].[BOOKING_SCH_S2].[BOOKING_TB_S2].[Date]
 
+-- =============================================================
+WITH DistinctDate AS
+(
+    SELECT * ,
+        ROW_NUMBER() OVER(
+            PARTITION BY [Date] ORDER BY [Date]) AS 'RowNum' 
+
+    FROM [STAGE_2_DB].[BOOKING_SCH_S2].[BOOKING_TB_S2]
+    
+)SELECT * INTO #TmpTable
+FROM DistinctDate
+WHERE RowNum = 1
+
+ALTER TABLE #TmpTable
+DROP COLUMN RowNum;
+
+
+SET DATEFIRST 3
+SELECT top 1000 
+    [Date], 
+    [Weekday], 
+    DATEPART(wk, [Date]) as weekNum, 
+    DATEPART(YEAR, [Date]) as SWS_Year
+FROM #TmpTable
+ORDER BY [Date] DESC 
+
+-- =============================================================
+
+
+DROP TABLE #TmpTable
+ALTER TABLE [STAGE_2_DB].[BOOKING_SCH_S2].[BOOKING_TB_S2]
+DROP COLUMN RowNum
+
+SELECT top 3 * from [STAGE_2_DB].[BOOKING_SCH_S2].[BOOKING_TB_S2]
+
+
+
+-- =============================================================
 
 
 WITH DistinctDate AS
@@ -150,7 +325,8 @@ WITH DistinctDate AS
     SELECT * ,
         ROW_NUMBER() OVER(
             PARTITION BY [Date] ORDER BY [Date]) AS 'RowNum' 
-    FROM [STAGE_1_DB].[BOOKING_SCH_S1].[BOOKING_TB_S1]
+
+    FROM [STAGE_2_DB].[BOOKING_SCH_S2].[BOOKING_TB_S2]
     
 )SELECT * INTO #TmpTable
 FROM DistinctDate
@@ -160,9 +336,62 @@ ALTER TABLE #TmpTable
 DROP COLUMN RowNum;
 
 SET DATEFIRST 3
-SELECT top 1000 [Date], [Weekday], DATEPART(wk, [Date]) as weekNum
+SELECT  
+    [Date], 
+    [Weekday], 
+    DATEPART(wk, [Date]) as weekNum, 
+    DATEPART(YEAR, [Date]) as SWS_Year
+    INTO 
+    #SWS_WEEK_YEAR
 FROM #TmpTable
-ORDER BY [Date] DESC 
+ORDER BY [Date] DESC; 
+DROP TABLE #TmpTable;
 
-DROP TABLE #TmpTable
+
+-- Condition
+-- https://stackoverflow.com/questions/35914894/how-to-assign-multiple-values-in-case-statement
+
+
+DROP TABLE #SWS_WEEK_YEAR;
+
+-- ===============================================
+
+
+DROP Table #SWS_WEEK_YEAR
+
+
+
+
+
+
+
+
+
+
+
+Select * From 
+    #SWS_WEEK_YEAR
+LEFT JOIN NumOfDaysLookup
+ON 
+#SWS_WEEK_YEAR.SWS_Year = NumOfDaysLookup.y 
+AND 
+#SWS_WEEK_YEAR.[weekNum] = NumOfDaysLookup.wk
+
+
+
+
+
+-- ====================================
+Select 
+    top 100
+    [SWS_Year],
+    [weekNum],     
+    count([Date]) AS NumOfDays
+FROM 
+#SWS_WEEK_YEAR
+GROUP BY 
+#SWS_WEEK_YEAR.SWS_Year,
+#SWS_WEEK_YEAR.weekNum
+ORDER BY 
+#SWS_WEEK_YEAR.SWS_Year;
 

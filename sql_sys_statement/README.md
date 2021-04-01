@@ -85,3 +85,6 @@ DECLARE @begin binary(10), @end binary(10);
  SET @begin = sys.fn_cdc_get_min_lsn('BOOKING_SCH_S1_BOOKING_TB_S1');
  SET @end = sys.fn_cdc_get_max_lsn();
 SELECT * FROM [cdc].[fn_cdc_get_all_changes_BOOKING_SCH_S1_BOOKING_TB_S1](@begin, @end, N'ALL')
+
+##### Add Column 
+ALTER TABLE dbo.doc_exa ADD column_b VARCHAR(20) NULL, column_c INT NULL ;

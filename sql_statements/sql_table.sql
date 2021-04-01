@@ -132,11 +132,13 @@ dateTable AS
     CONCAT(day,'/',month,'/20',year) 
     as newDateStr 
     FROM DateSplit),
+    
 dateIdxTemTable AS
 (SELECT
 	[Job No],
 		Convert(date,newDateStr ,103) as dateIdx
 			FROM dateTable)
+
 UPDATE stagingTable
 SET 
     stagingTable.[Date index] = temTable.dateIdx 

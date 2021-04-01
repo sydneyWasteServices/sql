@@ -1,5 +1,68 @@
 #### Note / General Queries
 
+##### Problem with function / Store Procedure
+    Functions destroy performance. But you could use a common-table-expression(cte):
+
+##### Union - Concat Two dataset   
+    SELECT column_name(s) FROM table1
+    UNION
+    SELECT column_name(s) FROM table2;
+
+   ###### with duplicates 
+    SELECT column_name(s) FROM table1
+    UNION ALL
+    SELECT column_name(s) FROM table2;
+
+##### General CTE and Join Table / Set and update
+WITH DateSplit 
+as 
+(SELECT 
+[Job No],
+ Date,
+ PARSENAME(REPLACE(Date, '/', '.'), 1) AS year,
+  PARSENAME(REPLACE(Date, '/', '.'), 2) AS month,
+   PARSENAME(REPLACE(Date, '/', '.'), 3) AS day
+FROM [dbo].[staging_table_test]),
+dateTable AS 
+(Select 
+	[Job No],
+    CONCAT(day,'/',month,'/20',year) 
+    as newDateStr 
+    FROM DateSplit),
+    
+dateIdxTemTable AS
+(SELECT
+	[Job No],
+		Convert(date,newDateStr ,103) as dateIdx
+			FROM dateTable)
+
+UPDATE stagingTable
+
+SET 
+    stagingTable.[Date index] = temTable.dateIdx 
+FROM [dbo].[staging_table_test] stagingTable
+INNER JOIN
+dateIdxTemTable temTable
+ON stagingTable.[Job No] = temTable.[Job No]
+
+
+##### Add columns, set and update 
+
+
+    Update #SWS_WEEK_YEAR 
+        SET [Weekday] = DATEPART(WEEKDAY, [Date])
+        FROM #SWS_WEEK_YEAR   
+        WHERE #SWS_WEEK_YEAR.[Weekday] IS NULL;
+
+
+    Alter Table #SWS_WEEK_YEAR
+    ADD IsPulicHoliday int,
+        IsWeekend int;
+
+
+
+##### Select NULL
+    Select if NUll  Values 
 
 ##### CASE VS IF 
 
