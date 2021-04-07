@@ -1,5 +1,11 @@
 #### System fn / inspect sys
 
+##### list all DB
+SELECT name, database_id, create_date  
+FROM sys.databases ;  
+GO  
+
+
 ##### list all schema
 select s.name as schema_name, 
     s.schema_id,
@@ -88,3 +94,39 @@ SELECT * FROM [cdc].[fn_cdc_get_all_changes_BOOKING_SCH_S1_BOOKING_TB_S1](@begin
 
 ##### Add Column 
 ALTER TABLE dbo.doc_exa ADD column_b VARCHAR(20) NULL, column_c INT NULL ;
+
+##### Is CDC enabled with Schema and Table name
+
+    USE STAGE_2_DB
+    GO
+
+    SELECT s.name AS Schema_Name, tb.name AS Table_Name
+    , tb.object_id, tb.type, tb.type_desc, tb.is_tracked_by_cdc
+    FROM sys.tables tb
+    INNER JOIN sys.schemas s on s.schema_id = tb.schema_id
+    WHERE tb.is_tracked_by_cdc = 1
+
+##### List all tables in DB
+
+
+    SELECT TABLE_CATALOG, 
+        TABLE_SCHEMA, 
+        TABLE_NAME, 
+        COLUMN_NAME, 
+        DATA_TYPE, 
+        IS_NULLABLE
+    FROM INFORMATION_SCHEMA.COLUMNS
+
+    WHERE TABLE_NAME = 'Employee';
+
+
+***Only list Schema and Table name 
+    SELECT 
+        TABLE_SCHEMA, 
+        TABLE_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    GROUP BY 
+        INFORMATION_SCHEMA.COLUMNS.TABLE_SCHEMA,
+        INFORMATION_SCHEMA.COLUMNS.TABLE_NAME
+
+

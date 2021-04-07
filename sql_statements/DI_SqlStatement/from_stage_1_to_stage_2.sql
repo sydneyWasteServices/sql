@@ -22,6 +22,7 @@ WITH DistinctJobs AS
         ROW_NUMBER() OVER(
             PARTITION BY [Job No] ORDER BY [Job No]) AS 'RowNum' 
     FROM [STAGE_TABLES_DB_1].[BOOKING].[STAGE_TABLE_1]
+    Where 
 
 )
 
@@ -42,10 +43,27 @@ DROP TABLE #TempTable
 Select TOP 3 *
 FROM [STAGE_TABLES_DB_1].[BOOKING].[STAGE_TABLE_1]
 WHERE [STAGE_TABLES_DB_1].[BOOKING].[STAGE_TABLE_1].[Latitude] = 0
-/* Get results and drop temp table */
 
 
+-- ========================================
+SELECT * 
+FROM 
+[STAGE_1_DB].[BOOKING_SCH_S1].[BOOKING_TB_S1]
+WHERE [BOOKING_SCH_S1].[BOOKING_TB_S1].[Date] >= '20210324'
+AND [BOOKING_SCH_S1].[BOOKING_TB_S1].[Date] <= '20210330'
 
+-- ========================================
+select s.name as schema_name, 
+    s.schema_id,
+    u.name as schema_owner
+from sys.schemas s
+    inner join sys.sysusers u
+        on u.uid = s.principal_id
+order by s.name
+
+
+SELECT DISTINCT [table_schema], [TABLE_NAME]
+FROM INFORMATION_SCHEMA.COLUMNS
 -- WHERE [BOOKING].[STAGE_TABLE_1].[Date] >= '20200320'
 --     AND [BOOKING].[STAGE_TABLE_1].[Date] <= '20210228'
 --     AND [BOOKING].[STAGE_TABLE_1].[Customer number] = 1825.003

@@ -57,3 +57,6 @@ DECLARE @query nvarchar(max) = 'SELECT TOP 3 DATEPART(DW, [STAGE_2_DB].[BOOKING_
 FROM [STAGE_2_DB].[BOOKING_SCH_S2].BOOKING_TB_S2 ';
 EXEC sp_describe_first_result_set @query, null, 0;  
 
+##### CDC Table
+
+SELECT * FROM [cdc].[dbo_Users_CT] GO

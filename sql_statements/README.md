@@ -117,7 +117,7 @@ FROM  TIPPING_SCH_S1.TIPPING_TB_S1
 SELECT MAX(DISTINCT [Route Date]) as LATESTDATE, count(*)
 FROM  TIPPING_SCH_S1.TIPPING_TB_S1
 
-##### Unique Job No
+##### Unique Job No / Unique row
 Problem is it would insert Column with RowNum
 as it picks row by 1
 
@@ -180,3 +180,16 @@ Select
     Convert(date,newDateStr ,103) 
         as Date_idx 
         into [dbo].staging_table_test FROM dateTable;
+
+
+##### Group by two or more condition
+SELECT TABLE_CATALOG, 
+       TABLE_SCHEMA, 
+       TABLE_NAME, 
+       COLUMN_NAME, 
+       DATA_TYPE, 
+       IS_NULLABLE
+FROM INFORMATION_SCHEMA.COLUMNS
+GROUP BY 
+    INFORMATION_SCHEMA.COLUMNS.TABLE_SCHEMA,
+    INFORMATION_SCHEMA.COLUMNS.TABLE_NAME
