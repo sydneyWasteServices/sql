@@ -145,9 +145,12 @@ FROM [BOOKING].[STAGE_TABLE_1]
 SELECT MAX(DISTINCT [Date]) as LATESTDATE, count(*)
 FROM [BOOKING].[STAGE_TABLE_1]
 
+
+-- ---------------------
 SELECT MIN(DISTINCT [Date]) as EarliestDate,
 MAX(DISTINCT [Date]) as LATESTDATE, count(*)
 FROM [BOOKING].[STAGE_TABLE_1]
+-- ---------------------
 
 SELECT *
 FROM [BOOKING].[STAGE_TABLE_1]

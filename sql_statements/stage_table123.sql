@@ -2,10 +2,26 @@ SELECT name, database_id, is_cdc_enabled FROM sys.databases
 WHERE is_cdc_enabled = 1
 
 
-USE STAGE_2_DB  
+USE STAGE_1_DB  
 GO  
 EXEC sys.sp_cdc_enable_db  
 GO  
+
+
+SELECT MIN(DISTINCT [Route Date]) as EarliestDate,
+MAX(DISTINCT [Route Date]) as LATESTDATE, count(*)
+FROM [TIPPING_SCH_S1].[TIPPING_TB_S1]
+
+
+select 
+    top 1 * 
+FROM [TIPPING_SCH_S1].[TIPPING_TB_S1]
+
+select 
+    * 
+FROM [TIPPING_SCH_S1].[TIPPING_TB_S1]
+WHERE [Route Date] between '20210331' AND '20210406'
+
 
 USE STAGE_2_DB
 GO
